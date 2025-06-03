@@ -2,121 +2,57 @@
 // CONTACT 254107065646 FOR MORE SCRIPTS 
 //DO NOT BUY OR SELL THIS SCRIPT 
 //DEVELOPER © mr smile tech
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html>
 <head>
-  <title>Phone Tracker</title>
-  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <title>Mr Smile - Leaflet Map</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+  />
   <style>
-    #map { height: 300px; width: 100%; margin-top: 10px; }
+    #map {
+      height: 90vh;
+      width: 100%;
+      border-radius: 10px;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
     footer {
-      text-align: center; 
-      padding: 10px; 
-      margin-top: 20px; 
-      border-top: 1px solid #ccc; 
-      color: #555; 
-      font-family: sans-serif;
+      margin-top: 10px;
+      font-size: 14px;
+      color: #555;
     }
   </style>
 </head>
 <body>
-  <h2>Register</h2>
-  <input id="phone" placeholder="Phone" />
-  <input id="email" placeholder="Email" />
-  <input id="password" type="password" placeholder="Password" />
-  <button onclick="register()">Register</button>
 
-  <h2>Login</h2>
-  <input id="loginPhone" placeholder="Phone" />
-  <input id="loginPassword" type="password" placeholder="Password" />
-  <button onclick="login()">Login</button>
-
-  <h2>Share Location</h2>
-  <button onclick="shareLocation()">Share My Location</button>
-
-  <h2>Track Phone Number</h2>
-  <input id="trackPhone" placeholder="Phone to track" />
-  <button onclick="trackPhone()">Track</button>
-  <div id="locationInfo"></div>
+  <h2>📍 Mr Smile - Free Map Tracker</h2>
   <div id="map"></div>
+  <p id="coords">Lat: -, Lng: -</p>
 
-<script>
-  let token = null;
-  let map, marker;
+  <footer>© Mr Smile</footer>
 
-  function register() {
-    const phone = document.getElementById('phone').value;
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <script>
+    const defaultLatLng = [-1.2921, 36.8219]; // Nairobi
+    const map = L.map('map').setView(defaultLatLng, 13);
 
-    axios.post('http://localhost:4000/api/register', { phone, email, password })
-      .then(res => alert(res.data.message))
-      .catch(err => alert(err.response.data.error));
-  }
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
 
-  function login() {
-    const phone = document.getElementById('loginPhone').value;
-    const password = document.getElementById('loginPassword').value;
+    const marker = L.marker(defaultLatLng, { draggable: true }).addTo(map)
+      .bindPopup('Drag me to set location').openPopup();
 
-    axios.post('http://localhost:4000/api/login', { phone, password })
-      .then(res => {
-        token = res.data.token;
-        alert('Logged in!');
-      })
-      .catch(err => alert(err.response.data.error));
-  }
-
-  function shareLocation() {
-    if (!token) return alert('Please login first!');
-    if (!navigator.geolocation) return alert('Geolocation not supported');
-
-    navigator.geolocation.getCurrentPosition(pos => {
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
-
-      axios.post('http://localhost:4000/api/location', { lat, lng }, {
-        headers: { Authorization: 'Bearer ' + token }
-      })
-      .then(res => alert(res.data.message))
-      .catch(err => alert(err.response.data.error));
+    marker.on('dragend', function (e) {
+      const { lat, lng } = marker.getLatLng();
+      document.getElementById('coords').innerText = `Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}`;
     });
-  }
-
-  function initMap(lat, lng) {
-    if (!map) {
-      map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 15,
-        center: { lat, lng }
-      });
-      marker = new google.maps.Marker({
-        position: { lat, lng },
-        map: map
-      });
-    } else {
-      map.setCenter({ lat, lng });
-      marker.setPosition({ lat, lng });
-    }
-  }
-
-  function trackPhone() {
-    const phone = document.getElementById('trackPhone').value;
-    axios.get('http://localhost:4000/api/location/' + phone)
-      .then(res => {
-        const { lat, lng, timestamp } = res.data;
-        document.getElementById('locationInfo').innerText = 
-          `Last location: ${lat.toFixed(5)}, ${lng.toFixed(5)} at ${new Date(timestamp).toLocaleString()}`;
-        initMap(lat, lng);
-      })
-      .catch(err => alert(err.response.data.error));
-  }
-</script>
-
-<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
-
-<footer>
-  © Mr Smile
-</footer>
-
+  </script>
 </body>
-</html>
-
+</html>   
